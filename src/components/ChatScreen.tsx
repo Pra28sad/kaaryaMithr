@@ -21,6 +21,36 @@ interface ChatScreenProps {
 const ChatScreen: React.FC<ChatScreenProps> = ({ onBack, language, contactName, contactType }) => {
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 1,
+      text: "Hello! I saw your job posting for farm work. I'm interested.",
+      sender: 'other',
+      timestamp: '10:30 AM',
+      type: 'text'
+    },
+    {
+      id: 2,
+      text: "Great! Can you come tomorrow at 6 AM?",
+      sender: 'user',
+      timestamp: '10:32 AM',
+      type: 'text'
+    },
+    {
+      id: 3,
+      text: "Yes, I'll be there. What's the exact location?",
+      sender: 'other',
+      timestamp: '10:35 AM',
+      type: 'text'
+    },
+    {
+      id: 4,
+      text: "Near the old temple, behind the school. I'll share location.",
+      sender: 'user',
+      timestamp: '10:37 AM',
+      type: 'text'
+    }
+  ]);
 
   const content = {
     en: {
@@ -55,43 +85,26 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ onBack, language, contactName, 
     }
   };
 
-  const sampleMessages: Message[] = [
-    {
-      id: 1,
-      text: "Hello! I saw your job posting for farm work. I'm interested.",
-      sender: 'other',
-      timestamp: '10:30 AM',
-      type: 'text'
-    },
-    {
-      id: 2,
-      text: "Great! Can you come tomorrow at 6 AM?",
-      sender: 'user',
-      timestamp: '10:32 AM',
-      type: 'text'
-    },
-    {
-      id: 3,
-      text: "Yes, I'll be there. What's the exact location?",
-      sender: 'other',
-      timestamp: '10:35 AM',
-      type: 'text'
-    },
-    {
-      id: 4,
-      text: "Near the old temple, behind the school. I'll share location.",
-      sender: 'user',
-      timestamp: '10:37 AM',
-      type: 'text'
-    }
-  ];
-
   const currentContent = content[language];
 
   const handleSendMessage = () => {
     if (message.trim()) {
-      // Handle sending message
+      const newMessage: Message = {
+        id: messages.length + 1,
+        text: message.trim(),
+        sender: 'user',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        type: 'text'
+      };
+      setMessages([...messages, newMessage]);
       setMessage('');
+      // Scroll to bottom after sending message
+      setTimeout(() => {
+        const chatContainer = document.getElementById('chat-messages');
+        if (chatContainer) {
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+      }, 100);
     }
   };
 
@@ -106,6 +119,8 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ onBack, language, contactName, 
         <div className="flex items-center space-x-4">
           <button
             onClick={onBack}
+            aria-label="Go back"
+            title="Go back"
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
             <ArrowLeft className="w-6 h-6 text-gray-600" />
@@ -127,13 +142,13 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ onBack, language, contactName, 
           </div>
 
           <div className="flex items-center space-x-2">
-            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+            <button aria-label="Voice call" title="Voice call" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
               <Phone className="w-6 h-6 text-gray-600" />
             </button>
-            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+            <button aria-label="Video call" title="Video call" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
               <Video className="w-6 h-6 text-gray-600" />
             </button>
-            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+            <button aria-label="More options" title="More options" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
               <MoreVertical className="w-6 h-6 text-gray-600" />
             </button>
           </div>
@@ -141,8 +156,8 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ onBack, language, contactName, 
       </div>
 
       {/* Messages */}
-      <div className="flex-1 px-6 py-4 space-y-4 overflow-y-auto">
-        {sampleMessages.map((msg) => (
+      <div id="chat-messages" className="flex-1 px-6 py-4 space-y-4 overflow-y-auto">
+        {messages.map((msg) => (
           <div
             key={msg.id}
             className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -173,6 +188,8 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ onBack, language, contactName, 
         <div className="flex items-center space-x-3">
           <button
             onClick={toggleRecording}
+            aria-label={isRecording ? "Stop recording" : "Start recording"}
+            title={isRecording ? "Stop recording" : "Start recording"}
             className={`p-3 rounded-full transition-colors ${
               isRecording
                 ? 'bg-red-600 text-white'
@@ -182,7 +199,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ onBack, language, contactName, 
             <Mic className="w-6 h-6" />
           </button>
 
-          <button className="p-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full transition-colors">
+          <button aria-label="Take photo" title="Take photo" className="p-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full transition-colors">
             <Camera className="w-6 h-6" />
           </button>
 
@@ -201,6 +218,8 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ onBack, language, contactName, 
           <button
             onClick={handleSendMessage}
             disabled={!message.trim()}
+            aria-label="Send message"
+            title="Send message"
             className="p-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white rounded-full transition-colors"
           >
             <Send className="w-6 h-6" />

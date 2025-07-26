@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Search, MapPin, Users, Briefcase, MessageCircle, User, Volume2 } from 'lucide-react';
+import Profile from './Profile';
+import EarningsScreen from './EarningsScreen';
 
 type Language = 'te' | 'hi' | 'en';
 
@@ -21,6 +23,7 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({
   onNavigateToChat 
 }) => {
   const [activeTab, setActiveTab] = useState('home');
+  const userRole = 'employer';
 
   const content = {
     en: {
@@ -68,6 +71,68 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({
   };
 
   const currentContent = content[language];
+
+  const sampleChats = [
+    { id: 1, name: 'Ravi Kumar', lastMessage: 'Need 2 workers tomorrow', unread: 1 },
+    { id: 2, name: 'Seema Patel', lastMessage: 'Can you send quote?', unread: 0 },
+    { id: 3, name: 'Anil Singh', lastMessage: 'Job completed, thanks!', unread: 0 },
+  ];
+
+  const postedJobs = [
+    { id: 1, title: 'Harvest Help', applicants: 3, status: 'Open' },
+    { id: 2, title: 'Field Cleaning', applicants: 5, status: 'In Progress' },
+    { id: 3, title: 'Loading Truck', applicants: 2, status: 'Closed' },
+  ];
+
+  const renderChatTab = () => (
+    <div className="space-y-3">
+      {sampleChats.map((chat) => (
+        <button
+          key={chat.id}
+          onClick={() => onNavigateToChat(chat.name, 'worker')}
+          className="w-full bg-white rounded-xl shadow flex items-center justify-between p-4 hover:shadow-md transition"
+        >
+          <div className="text-left">
+            <p className="font-semibold text-gray-800">{chat.name}</p>
+            <p className="text-sm text-gray-600 truncate max-w-xs">{chat.lastMessage}</p>
+          </div>
+          {chat.unread > 0 && (
+            <span className="ml-2 inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold">
+              {chat.unread}
+            </span>
+          )}
+        </button>
+      ))}
+      {sampleChats.length === 0 && (
+        <p className="text-center text-gray-600 py-12">No chats yet</p>
+      )}
+    </div>
+  );
+
+  const renderJobsTab = () => (
+    <div className="space-y-3">
+      {postedJobs.map((job) => (
+        <div key={job.id} className="bg-white rounded-xl shadow p-4 flex items-center justify-between hover:shadow-md transition">
+          <div>
+            <p className="font-semibold text-gray-800">{job.title}</p>
+            <p className="text-sm text-gray-600">Applicants: {job.applicants}</p>
+          </div>
+          <span className={`px-3 py-1 text-xs rounded-full font-semibold ${
+            job.status === 'Open'
+              ? 'bg-green-100 text-green-700'
+              : job.status === 'In Progress'
+              ? 'bg-yellow-100 text-yellow-700'
+              : 'bg-gray-100 text-gray-600'
+          }`}>
+            {job.status}
+          </span>
+        </div>
+      ))}
+      {postedJobs.length === 0 && (
+        <p className="text-center text-gray-600 py-12">You haven't posted any jobs yet</p>
+      )}
+    </div>
+  );
 
   const renderHomeTab = () => (
     <div className="space-y-6">
@@ -125,12 +190,34 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({
         <h3 className="text-xl font-bold text-gray-800 mb-4">
           {currentContent.myJobs}
         </h3>
-        <div className="text-center py-12 bg-white rounded-2xl shadow-lg">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Briefcase className="w-8 h-8 text-gray-400" />
+        {postedJobs.length === 0 ? (
+          <div className="text-center py-12 bg-white rounded-2xl shadow-lg">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Briefcase className="w-8 h-8 text-gray-400" />
+            </div>
+            <p className="text-gray-600">{currentContent.noJobs}</p>
           </div>
-          <p className="text-gray-600">{currentContent.noJobs}</p>
-        </div>
+        ) : (
+          <div className="space-y-3">
+            {postedJobs.slice(0, 3).map((job) => (
+              <div key={job.id} className="bg-white rounded-xl shadow p-4 flex items-center justify-between hover:shadow-md transition">
+                <div>
+                  <p className="font-medium text-gray-800">{job.title}</p>
+                  <p className="text-xs text-gray-600">Applicants: {job.applicants}</p>
+                </div>
+                <span className={`px-3 py-1 text-xs rounded-full font-semibold ${
+                  job.status === 'Open'
+                    ? 'bg-green-100 text-green-700'
+                    : job.status === 'In Progress'
+                    ? 'bg-yellow-100 text-yellow-700'
+                    : 'bg-gray-100 text-gray-600'
+                }`}>
+                  {job.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -140,45 +227,16 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({
       case 'home':
         return renderHomeTab();
       case 'workers':
-        return (
-          <div className="text-center py-12">
-            <button
-              onClick={onNavigateToWorkersList}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl"
-            >
-              Browse Workers
-            </button>
-          </div>
-        );
+        // Workers list is handled in higher-level component; nothing to render here.
+        return null;
       case 'chat':
-        return (
-          <div className="text-center py-12">
-            <button
-              onClick={() => onNavigateToChat('Demo Worker', 'worker')}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl"
-            >
-              Open Chat Demo
-            </button>
-          </div>
-        );
+        return renderChatTab();
       case 'jobs':
-        return (
-          <div className="text-center py-12">
-            <Briefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">Your posted jobs will appear here</p>
-          </div>
-        );
+        return renderJobsTab();
       case 'profile':
-        return (
-          <div className="text-center py-12">
-            <button
-              onClick={onNavigateToProfile}
-              className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-6 rounded-xl"
-            >
-              View Profile
-            </button>
-          </div>
-        );
+        return <Profile user={user} language={language} userRole={userRole} onBack={() => setActiveTab('home')} onSwitchRole={() => {}} />;
+      case 'earnings':
+        return <EarningsScreen onBack={() => setActiveTab('home')} language={language} />;
       default:
         return renderHomeTab();
     }
@@ -203,7 +261,13 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                if (tab.id === 'workers') {
+                  onNavigateToWorkersList();
+                } else {
+                  setActiveTab(tab.id);
+                }
+              }}
               className={`flex flex-col items-center space-y-1 py-2 px-3 rounded-lg transition-colors ${
                 activeTab === tab.id
                   ? 'text-orange-600 bg-orange-50'

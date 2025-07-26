@@ -1,5 +1,10 @@
-import React from 'react';
-import { ArrowLeft, User, MapPin, Phone, Globe, LogOut, Settings, HelpCircle, Edit } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, User, MapPin, Phone, Globe, LogOut, Settings as SettingsIcon, HelpCircle, Edit } from 'lucide-react';
+import EditProfile from './EditProfile';
+import SettingsComponent from './Settings';
+import HelpSupport from './HelpSupport';
+import LanguageSettings from './LanguageSettings';
+import RoleSwitchConfirmation from './RoleSwitchConfirmation';
 
 type Language = 'te' | 'hi' | 'en';
 type UserRole = 'worker' | 'employer';
@@ -9,9 +14,24 @@ interface ProfileProps {
   language: Language;
   userRole: UserRole | null;
   onBack: () => void;
+  onSwitchRole: () => void;
+  onUserUpdate?: (updatedUser: any) => void;
+  onLanguageChange?: (language: Language) => void;
+  onLogout?: () => void;
 }
 
-const Profile: React.FC<ProfileProps> = ({ user, language, userRole, onBack }) => {
+const Profile: React.FC<ProfileProps> = ({ 
+  user, 
+  language, 
+  userRole, 
+  onBack, 
+  onSwitchRole,
+  onUserUpdate,
+  onLanguageChange,
+  onLogout
+}) => {
+  const [currentView, setCurrentView] = useState<'main' | 'edit' | 'settings' | 'help' | 'language'>('main');
+  const [showRoleSwitchConfirmation, setShowRoleSwitchConfirmation] = useState(false);
   const content = {
     en: {
       title: "Profile",
@@ -20,6 +40,7 @@ const Profile: React.FC<ProfileProps> = ({ user, language, userRole, onBack }) =
       language: "Language",
       help: "Help & Support",
       logout: "Logout",
+      logoutConfirm: "Are you sure you want to logout?",
       phone: "Phone Number",
       location: "Location",
       categories: "Work Categories",
@@ -32,6 +53,7 @@ const Profile: React.FC<ProfileProps> = ({ user, language, userRole, onBack }) =
       language: "भाषा",
       help: "सहायता और समर्थन",
       logout: "लॉगआउट",
+      logoutConfirm: "क्या आप वाकई लॉगआउट करना चाहते हैं?",
       phone: "फोन नंबर",
       location: "स्थान",
       categories: "काम की श्रेणियां",
@@ -44,6 +66,7 @@ const Profile: React.FC<ProfileProps> = ({ user, language, userRole, onBack }) =
       language: "భాష",
       help: "సహాయం & మద్దతు",
       logout: "లాగౌట్",
+      logoutConfirm: "మీరు నిజంగా లాగౌట్ చేయాలనుకుంటున్నారా?",
       phone: "ఫోన్ నంబర్",
       location: "స్థానం",
       categories: "పని వర్గాలు",
@@ -53,15 +76,116 @@ const Profile: React.FC<ProfileProps> = ({ user, language, userRole, onBack }) =
 
   const currentContent = content[language];
 
+  const handleMenuAction = (action: string) => {
+    switch (action) {
+      case 'edit':
+        setCurrentView('edit');
+        break;
+      case 'switch-role':
+        setShowRoleSwitchConfirmation(true);
+        break;
+      case 'language':
+        setCurrentView('language');
+        break;
+      case 'settings':
+        setCurrentView('settings');
+        break;
+      case 'help':
+        setCurrentView('help');
+        break;
+      case 'logout':
+        if (onLogout) {
+          onLogout();
+        } else {
+          // Default logout behavior
+          if (window.confirm(currentContent.logoutConfirm || 'Are you sure you want to logout?')) {
+            // Reset to initial state or redirect to login
+            window.location.reload();
+          }
+        }
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleUserUpdate = (updatedUser: any) => {
+    if (onUserUpdate) {
+      onUserUpdate(updatedUser);
+    }
+    setCurrentView('main');
+  };
+
+  const handleLanguageUpdate = (newLanguage: Language) => {
+    if (onLanguageChange) {
+      onLanguageChange(newLanguage);
+    }
+    setCurrentView('main');
+  };
+
+  const handleRoleSwitchConfirm = () => {
+    console.log('Role switch confirmed in Profile component'); // Debug log
+    setShowRoleSwitchConfirmation(false);
+    onSwitchRole();
+    console.log('onSwitchRole called'); // Debug log
+  };
+
+  const handleRoleSwitchCancel = () => {
+    setShowRoleSwitchConfirmation(false);
+  };
+
   const menuItems = [
     { icon: Edit, label: currentContent.edit, action: 'edit' },
     { icon: User, label: currentContent.switchRole, action: 'switch-role' },
     { icon: Globe, label: currentContent.language, action: 'language' },
-    { icon: Settings, label: currentContent.settings, action: 'settings' },
+    { icon: SettingsIcon, label: currentContent.settings, action: 'settings' },
     { icon: HelpCircle, label: currentContent.help, action: 'help' },
     { icon: LogOut, label: currentContent.logout, action: 'logout', danger: true }
   ];
 
+  // Render different views based on currentView state
+  if (currentView === 'edit') {
+    return (
+      <EditProfile
+        user={user}
+        language={language}
+        userRole={userRole}
+        onBack={() => setCurrentView('main')}
+        onSave={handleUserUpdate}
+      />
+    );
+  }
+
+  if (currentView === 'settings') {
+    return (
+      <SettingsComponent
+        language={language}
+        onBack={() => setCurrentView('main')}
+        onLanguageChange={handleLanguageUpdate}
+      />
+    );
+  }
+
+  if (currentView === 'help') {
+    return (
+      <HelpSupport
+        language={language}
+        onBack={() => setCurrentView('main')}
+      />
+    );
+  }
+
+  if (currentView === 'language') {
+    return (
+      <LanguageSettings
+        currentLanguage={language}
+        onBack={() => setCurrentView('main')}
+        onLanguageChange={handleLanguageUpdate}
+      />
+    );
+  }
+
+  // Main profile view
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Header */}
@@ -134,6 +258,8 @@ const Profile: React.FC<ProfileProps> = ({ user, language, userRole, onBack }) =
           {menuItems.map((item, index) => (
             <button
               key={item.action}
+              onClick={() => handleMenuAction(item.action)}
+              title={item.label}
               className={`w-full flex items-center space-x-4 p-4 hover:bg-gray-50 transition-colors ${
                 index !== menuItems.length - 1 ? 'border-b border-gray-100' : ''
               } ${item.danger ? 'text-red-600 hover:bg-red-50' : 'text-gray-800'}`}
@@ -156,6 +282,16 @@ const Profile: React.FC<ProfileProps> = ({ user, language, userRole, onBack }) =
           </p>
         </div>
       </div>
+
+      {/* Role Switch Confirmation Dialog */}
+      <RoleSwitchConfirmation
+        currentRole={userRole || 'worker'}
+        targetRole={userRole === 'worker' ? 'employer' : 'worker'}
+        language={language}
+        onConfirm={handleRoleSwitchConfirm}
+        onCancel={handleRoleSwitchCancel}
+        isVisible={showRoleSwitchConfirmation}
+      />
     </div>
   );
 };

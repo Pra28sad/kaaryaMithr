@@ -34,7 +34,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, language, onCall, onMessage }) =
   };
 
   const getCategoryIcon = (category: string) => {
-    const icons: { [key: string]: string } = {
+    const icons: { [key: string]: React.ReactNode } = {
       'Farming': '🌾',
       'Construction': '🏗️',
       'Gardening': '🌱',

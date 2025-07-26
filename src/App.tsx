@@ -10,7 +10,7 @@ import WorkerRegistration from './components/WorkerRegistration';
 import Profile from './components/Profile';
 import JobPostForm from './components/JobPostForm';
 import WorkersList from './components/WorkersList';
-import ChatScreen from './components/ChatScreen';
+import EnhancedChatScreen from './components/EnhancedChatScreen';
 import EarningsScreen from './components/EarningsScreen';
 
 type Screen = 'splash' | 'language' | 'role' | 'login' | 'worker-registration' | 'worker-dashboard' | 'employer-dashboard' | 'profile' | 'job-post' | 'workers-list' | 'chat' | 'earnings';
@@ -18,6 +18,7 @@ type Language = 'te' | 'hi' | 'en';
 type UserRole = 'worker' | 'employer';
 
 function App() {
+
   const [currentScreen, setCurrentScreen] = useState<Screen>('splash');
   const [selectedLanguage, setSelectedLanguage] = useState<Language>('en');
   const [userRole, setUserRole] = useState<UserRole | null>(null);
@@ -84,6 +85,24 @@ function App() {
     }
   };
 
+  const handleSwitchRole = () => {
+    // Directly switch role and navigate to opposite dashboard
+    if (userRole === 'worker') {
+      console.log('[APP] switching role to employer');
+      setUserRole('employer');
+      setCurrentScreen('employer-dashboard');
+    } else {
+      console.log('[APP] switching role to worker');
+      setUserRole('worker');
+      setCurrentScreen('worker-dashboard');
+    }
+  };
+
+  // Debug: log screen and role changes
+  React.useEffect(() => {
+    console.log('[APP] screen:', currentScreen, 'role:', userRole);
+  }, [currentScreen, userRole]);
+
   const renderCurrentScreen = () => {
     switch (currentScreen) {
       case 'splash':
@@ -115,13 +134,33 @@ function App() {
           onNavigateToChat={handleNavigateToChat}
         />;
       case 'profile':
-        return <Profile user={user} language={selectedLanguage} userRole={userRole} onBack={handleBackToDashboard} />;
+        return <Profile 
+          user={user} 
+          language={selectedLanguage} 
+          userRole={userRole} 
+          onBack={handleBackToDashboard} 
+          onSwitchRole={handleSwitchRole}
+          onUserUpdate={(updatedUser) => setUser(updatedUser)}
+          onLanguageChange={(newLanguage) => setSelectedLanguage(newLanguage)}
+          onLogout={() => {
+            setUser(null);
+            setUserRole(null);
+            setCurrentScreen('splash');
+          }}
+        />;
       case 'job-post':
         return <JobPostForm onBack={handleBackToDashboard} onSubmit={handleJobPost} language={selectedLanguage} />;
       case 'workers-list':
         return <WorkersList onBack={handleBackToDashboard} language={selectedLanguage} />;
       case 'chat':
-        return <ChatScreen onBack={handleBackToDashboard} language={selectedLanguage} contactName="Demo Contact" contactType="worker" />;
+        return <EnhancedChatScreen 
+          onBack={handleBackToDashboard} 
+          language={selectedLanguage} 
+          contactName="Demo Contact" 
+          contactType="worker"
+          userId={user?.id || 'user1'}
+          contactId="contact1"
+        />;
       case 'earnings':
         return <EarningsScreen onBack={handleBackToDashboard} language={selectedLanguage} />;
       default:

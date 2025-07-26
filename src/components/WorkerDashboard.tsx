@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
-import { ToggleLeft, ToggleRight, MapPin, Clock, IndianRupee, Volume2, Home, Briefcase, MessageCircle, Wallet, User } from 'lucide-react';
+import { MapPin, Volume2, Home, Briefcase, MessageCircle, Wallet, User } from 'lucide-react';
+import AvailabilityToggle from './AvailabilityToggle';
 import JobCard from './JobCard';
+import Profile from './Profile';
+import EarningsScreen from './EarningsScreen';
+import ChatScreen from './ChatScreen';
 
 type Language = 'te' | 'hi' | 'en';
 
@@ -21,6 +25,7 @@ const WorkerDashboard: React.FC<WorkerDashboardProps> = ({
 }) => {
   const [isAvailable, setIsAvailable] = useState(true);
   const [activeTab, setActiveTab] = useState('home');
+  const userRole = 'worker';
 
   const content = {
     en: {
@@ -114,8 +119,11 @@ const WorkerDashboard: React.FC<WorkerDashboardProps> = ({
       <div className="bg-white rounded-2xl shadow-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-xl font-bold text-gray-800">
+            <h2 className="text-xl font-bold text-gray-800 flex items-center">
               {currentContent.greeting}, {user.name}
+              <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${isAvailable ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>
+                {isAvailable ? currentContent.readyForWork : currentContent.notAvailable}
+              </span>
             </h2>
             <div className="flex items-center text-gray-600 mt-1">
               <MapPin className="w-4 h-4 mr-1" />
@@ -135,14 +143,7 @@ const WorkerDashboard: React.FC<WorkerDashboardProps> = ({
               {isAvailable ? "Employers can contact you" : "You won't receive job requests"}
             </p>
           </div>
-          <button
-            onClick={() => setIsAvailable(!isAvailable)}
-            className={`p-1 rounded-full transition-colors ${
-              isAvailable ? 'text-green-600' : 'text-gray-400'
-            }`}
-          >
-            {isAvailable ? <ToggleRight className="w-12 h-12" /> : <ToggleLeft className="w-12 h-12" />}
-          </button>
+          <AvailabilityToggle value={isAvailable} onChange={setIsAvailable} />
         </div>
       </div>
 
@@ -178,45 +179,99 @@ const WorkerDashboard: React.FC<WorkerDashboardProps> = ({
       case 'home':
         return renderHomeTab();
       case 'works':
+        const sampleWorkHistory = [
+          {
+            id: 1,
+            jobTitle: "Tomato Harvesting",
+            employer: "Ravi Kumar",
+            date: "2024-01-10",
+            duration: "5 hours",
+            status: "Completed"
+          },
+          {
+            id: 2,
+            jobTitle: "House Painting",
+            employer: "Lakshmi Devi",
+            date: "2024-01-08",
+            duration: "3 hours",
+            status: "Completed"
+          },
+          {
+            id: 3,
+            jobTitle: "Garden Maintenance",
+            employer: "Suresh Babu",
+            date: "2024-01-05",
+            duration: "4 hours",
+            status: "Pending"
+          }
+        ];
+
         return (
-          <div className="text-center py-12">
-            <Briefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">Your work history will appear here</p>
+          <div className="px-6 py-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-6">Work History</h2>
+            {sampleWorkHistory.length > 0 ? (
+              <div className="space-y-4">
+                {sampleWorkHistory.map((work) => (
+                  <div key={work.id} className="bg-white rounded-2xl shadow-lg p-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-lg font-semibold text-gray-800">{work.jobTitle}</h3>
+                      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                        work.status === "Completed" ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {work.status}
+                      </span>
+                    </div>
+                    <div className="text-gray-600 mb-1">Employer: {work.employer}</div>
+                    <div className="text-gray-600 mb-1">Date: {new Date(work.date).toLocaleDateString()}</div>
+                    <div className="text-gray-600">Duration: {work.duration}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-white rounded-2xl shadow-lg">
+                <Briefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">No work history available</p>
+              </div>
+            )}
           </div>
         );
       case 'chat':
+        // Sample chat histories
+        const sampleChats = [
+          { id: 1, name: 'Ravi Kumar', lastMessage: 'See you tomorrow!', timestamp: '09:15 AM' },
+          { id: 2, name: 'Lakshmi Devi', lastMessage: 'Job completed, thank you!', timestamp: 'Yesterday' },
+          { id: 3, name: 'Suresh Babu', lastMessage: 'Can you come at 10?', timestamp: 'Monday' },
+          { id: 4, name: 'Anjali Singh', lastMessage: 'Payment sent.', timestamp: 'Sunday' },
+          { id: 5, name: 'Vikram Patel', lastMessage: 'Let me know if you need help.', timestamp: 'Saturday' },
+        ];
         return (
-          <div className="text-center py-12">
-            <button
-              onClick={() => onNavigateToChat('Demo Employer', 'employer')}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl"
-            >
-              Open Chat Demo
-            </button>
+          <div className="py-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Chats</h2>
+            <div className="space-y-4">
+              {sampleChats.map(chat => (
+                <div key={chat.id} className="flex items-center bg-white rounded-xl shadow p-4 hover:bg-blue-50 transition cursor-pointer">
+                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-lg font-bold text-blue-700 mr-4">
+                    {chat.name.charAt(0)}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-800">{chat.name}</div>
+                    <div className="text-gray-500 text-sm truncate">{chat.lastMessage}</div>
+                  </div>
+                  <div className="text-xs text-gray-400 ml-4">{chat.timestamp}</div>
+                </div>
+              ))}
+            </div>
           </div>
         );
+        // Suggestions for improvement:
+        // - Make each chat clickable to open the ChatScreen with that user
+        // - Show unread message badges
+        // - Add search/filter for chats
+        // - Integrate with backend for real chat data
       case 'earnings':
-        return (
-          <div className="text-center py-12">
-            <button
-              onClick={onNavigateToEarnings}
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl"
-            >
-              View Earnings
-            </button>
-          </div>
-        );
+        return <EarningsScreen onBack={() => setActiveTab('home')} language={language} />;
       case 'profile':
-        return (
-          <div className="text-center py-12">
-            <button
-              onClick={onNavigateToProfile}
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl"
-            >
-              View Profile
-            </button>
-          </div>
-        );
+        return <Profile user={user} language={language} userRole={userRole} onBack={() => setActiveTab('home')} onSwitchRole={() => {}} />;
       default:
         return renderHomeTab();
     }
