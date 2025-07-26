@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
+import { useToast } from './ToastProvider';
+import RoleSwitchConfirmation from './RoleSwitchConfirmation';
 import { MapPin, Volume2, Home, Briefcase, MessageCircle, Wallet, User } from 'lucide-react';
 import AvailabilityToggle from './AvailabilityToggle';
 import JobCard from './JobCard';
 import Profile from './Profile';
 import EarningsScreen from './EarningsScreen';
-import ChatScreen from './ChatScreen';
+import { useLang } from './LanguageContext'; 
 
 type Language = 'te' | 'hi' | 'en';
 
 interface WorkerDashboardProps {
+  onSwitchRole: () => void;
   user: any;
-  language: Language;
   onNavigateToProfile: () => void;
   onNavigateToChat: (contactName: string, contactType: 'worker' | 'employer') => void;
   onNavigateToEarnings: () => void;
@@ -18,13 +20,36 @@ interface WorkerDashboardProps {
 
 const WorkerDashboard: React.FC<WorkerDashboardProps> = ({ 
   user, 
-  language, 
   onNavigateToProfile, 
   onNavigateToChat, 
-  onNavigateToEarnings 
+  onNavigateToEarnings, 
+  onSwitchRole
 }) => {
+  const { lang: language } = useLang();
   const [isAvailable, setIsAvailable] = useState(true);
+  const [savingAvailability, setSavingAvailability] = useState(false);
+  const toast = useToast();
+
+  const saveAvailability = async (next: boolean) => {
+    setSavingAvailability(true);
+    try {
+      // simulate network latency
+      await new Promise((res) => setTimeout(res, 800));
+      setIsAvailable(next);
+      toast.addToast({
+        message: `Availability ${next ? 'ON' : 'OFF'}`,
+        actionLabel: 'Undo',
+        onAction: () => saveAvailability(!next),
+      });
+    } catch (err) {
+      toast.addToast({ message: "Couldn't update status", duration: 4000 });
+    } finally {
+      setSavingAvailability(false);
+    }
+  };
+
   const [activeTab, setActiveTab] = useState('home');
+  const [showRoleSwitchConfirmation, setShowRoleSwitchConfirmation] = useState(false);
   const userRole = 'worker';
 
   const content = {
@@ -74,7 +99,7 @@ const WorkerDashboard: React.FC<WorkerDashboardProps> = ({
 
   const currentContent = content[language];
 
-  const sampleJobs = [
+  const sampleJobs: any[] = [
     {
       id: 1,
       title: "Farm Work Needed",
@@ -119,7 +144,7 @@ const WorkerDashboard: React.FC<WorkerDashboardProps> = ({
       <div className="bg-white rounded-2xl shadow-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-xl font-bold text-gray-800 flex items-center">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
               {currentContent.greeting}, {user.name}
               <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${isAvailable ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>
                 {isAvailable ? currentContent.readyForWork : currentContent.notAvailable}
@@ -130,7 +155,15 @@ const WorkerDashboard: React.FC<WorkerDashboardProps> = ({
               <span>{user.location}</span>
             </div>
           </div>
-          <Volume2 className="w-6 h-6 text-green-600" />
+          <div className="flex flex-col items-end space-y-2">
+            <button
+              onClick={() => setShowRoleSwitchConfirmation(true)}
+              className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-full bg-orange-100 text-orange-800 hover:bg-orange-200 dark:bg-orange-700 dark:text-orange-100 dark:hover:bg-orange-600 transition"
+            >
+              Switch to Employer
+            </button>
+            <Volume2 className="w-6 h-6 text-green-600" />
+          </div>
         </div>
 
         {/* Availability Toggle */}
@@ -143,7 +176,7 @@ const WorkerDashboard: React.FC<WorkerDashboardProps> = ({
               {isAvailable ? "Employers can contact you" : "You won't receive job requests"}
             </p>
           </div>
-          <AvailabilityToggle value={isAvailable} onChange={setIsAvailable} />
+          <AvailabilityToggle value={isAvailable} onChange={saveAvailability} pending={savingAvailability} />
         </div>
       </div>
 
@@ -248,17 +281,21 @@ const WorkerDashboard: React.FC<WorkerDashboardProps> = ({
           <div className="py-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Chats</h2>
             <div className="space-y-4">
-              {sampleChats.map(chat => (
-                <div key={chat.id} className="flex items-center bg-white rounded-xl shadow p-4 hover:bg-blue-50 transition cursor-pointer">
-                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-lg font-bold text-blue-700 mr-4">
+              {sampleChats.map((chat) => (
+                <button
+                  key={chat.id}
+                  onClick={() => onNavigateToChat(chat.name, 'employer')}
+                  className="flex w-full items-center bg-white rounded-xl shadow p-4 hover:bg-green-50 transition"
+                >
+                  <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-lg font-bold text-green-700 mr-4">
                     {chat.name.charAt(0)}
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 text-left">
                     <div className="font-semibold text-gray-800">{chat.name}</div>
                     <div className="text-gray-500 text-sm truncate">{chat.lastMessage}</div>
                   </div>
                   <div className="text-xs text-gray-400 ml-4">{chat.timestamp}</div>
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -269,12 +306,21 @@ const WorkerDashboard: React.FC<WorkerDashboardProps> = ({
         // - Add search/filter for chats
         // - Integrate with backend for real chat data
       case 'earnings':
-        return <EarningsScreen onBack={() => setActiveTab('home')} language={language} />;
+        return <EarningsScreen onBack={() => setActiveTab('home')} />;
       case 'profile':
-        return <Profile user={user} language={language} userRole={userRole} onBack={() => setActiveTab('home')} onSwitchRole={() => {}} />;
+        return <Profile user={user} userRole={userRole} onBack={() => setActiveTab('home')} onSwitchRole={onSwitchRole} />;
       default:
         return renderHomeTab();
     }
+  };
+
+  const handleConfirmSwitch = () => {
+    onSwitchRole();
+    setShowRoleSwitchConfirmation(false);
+  };
+
+  const handleCancelSwitch = () => {
+    setShowRoleSwitchConfirmation(false);
   };
 
   return (
@@ -309,6 +355,14 @@ const WorkerDashboard: React.FC<WorkerDashboardProps> = ({
           ))}
         </div>
       </div>
+      <RoleSwitchConfirmation
+        currentRole={userRole}
+        targetRole="employer"
+        language={language}
+        onConfirm={handleConfirmSwitch}
+        onCancel={handleCancelSwitch}
+        isVisible={showRoleSwitchConfirmation}
+      />
     </div>
   );
 };

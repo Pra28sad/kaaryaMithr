@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLang } from './components/LanguageContext';
 import SplashScreen from './components/SplashScreen';
 import LanguageSelection from './components/LanguageSelection';
 // Removed import of PermissionsScreen
@@ -20,12 +21,13 @@ type UserRole = 'worker' | 'employer';
 function App() {
 
   const [currentScreen, setCurrentScreen] = useState<Screen>('splash');
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>('en');
+  const { lang: selectedLanguage, setLang } = useLang();
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [user, setUser] = useState<any>(null);
 
   const handleLanguageSelect = (language: Language) => {
-    setSelectedLanguage(language);
+    setLang(language);
+    localStorage.setItem('km-lang', language);
     setCurrentScreen('role'); // Directly go to role selection, skipping permissions
   };
 
@@ -117,31 +119,34 @@ function App() {
       case 'worker-registration':
         return <WorkerRegistration onComplete={handleRegistrationComplete} language={selectedLanguage} />;
       case 'worker-dashboard':
-        return <WorkerDashboard 
+        return <WorkerDashboard key={`worker-${selectedLanguage}`} 
           user={user} 
-          language={selectedLanguage} 
+           
           onNavigateToProfile={handleNavigateToProfile}
           onNavigateToChat={handleNavigateToChat}
           onNavigateToEarnings={handleNavigateToEarnings}
+          onSwitchRole={handleSwitchRole}
         />;
       case 'employer-dashboard':
-        return <EmployerDashboard 
+        return <EmployerDashboard key={`employer-${selectedLanguage}`} 
           user={user} 
-          language={selectedLanguage} 
+           
           onNavigateToProfile={handleNavigateToProfile}
           onNavigateToJobPost={handleNavigateToJobPost}
           onNavigateToWorkersList={handleNavigateToWorkersList}
           onNavigateToChat={handleNavigateToChat}
+          onSwitchRole={handleSwitchRole}
         />;
       case 'profile':
         return <Profile 
-          user={user} 
           language={selectedLanguage} 
+          user={user} 
+           
           userRole={userRole} 
           onBack={handleBackToDashboard} 
           onSwitchRole={handleSwitchRole}
           onUserUpdate={(updatedUser) => setUser(updatedUser)}
-          onLanguageChange={(newLanguage) => setSelectedLanguage(newLanguage)}
+          onLanguageChange={(newLanguage) => setLang(newLanguage)}
           onLogout={() => {
             setUser(null);
             setUserRole(null);
@@ -155,9 +160,9 @@ function App() {
       case 'chat':
         return <EnhancedChatScreen 
           onBack={handleBackToDashboard} 
-          language={selectedLanguage} 
+           
           contactName="Demo Contact" 
-          contactType="worker"
+          contactType="worker" language={selectedLanguage}
           userId={user?.id || 'user1'}
           contactId="contact1"
         />;

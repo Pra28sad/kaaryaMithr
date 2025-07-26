@@ -1,17 +1,25 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Bell, Shield, Moon, Sun, Volume2, VolumeX, Smartphone, Globe, Database, Trash2 } from 'lucide-react';
 
+import { useLang } from './LanguageContext';
 type Language = 'te' | 'hi' | 'en';
 
 interface SettingsProps {
-  language: Language;
   onBack: () => void;
-  onLanguageChange: (language: Language) => void;
 }
 
-const Settings: React.FC<SettingsProps> = ({ language, onBack, onLanguageChange }) => {
+const Settings: React.FC<SettingsProps> = ({ onBack }) => {
+  const { lang, setLang } = useLang();
+  // initialize dark mode based on localStorage or system preference
+  const getInitialDark = () => {
+    if (typeof window === 'undefined') return false;
+    const saved = localStorage.getItem('theme');
+    if (saved) return saved === 'dark';
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  };
+
   const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState<boolean>(getInitialDark());
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [locationSharing, setLocationSharing] = useState(true);
 
@@ -96,7 +104,26 @@ const Settings: React.FC<SettingsProps> = ({ language, onBack, onLanguageChange 
     }
   };
 
-  const currentContent = content[language];
+  const currentContent = content[lang];
+
+  // Language change handler
+  const handleLanguageChange = (newLang: Language) => {
+    setLang(newLang);
+  };
+
+  const applyTheme = (enableDark: boolean) => {
+    if (enableDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('theme', enableDark ? 'dark' : 'light');
+  };
+
+  // Apply theme on mount and whenever darkMode changes
+  React.useEffect(() => {
+    applyTheme(darkMode);
+  }, [darkMode]);
 
   const ToggleSwitch = ({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) => (
     <button
@@ -209,9 +236,9 @@ const Settings: React.FC<SettingsProps> = ({ language, onBack, onLanguageChange 
               description={currentContent.languageDesc}
               action={
                 <select
-                  value={language}
-                  onChange={(e) => onLanguageChange(e.target.value as Language)}
-                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  value={lang}
+                  onChange={(e) => handleLanguageChange(e.target.value as Language)}
+                  className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 >
                   <option value="en">English</option>
                   <option value="hi">हिंदी</option>

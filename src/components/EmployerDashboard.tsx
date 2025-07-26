@@ -1,28 +1,32 @@
 import React, { useState } from 'react';
+import { useLang } from './LanguageContext';
+import RoleSwitchConfirmation from './RoleSwitchConfirmation';
 import { Plus, Search, MapPin, Users, Briefcase, MessageCircle, User, Volume2 } from 'lucide-react';
 import Profile from './Profile';
 import EarningsScreen from './EarningsScreen';
 
-type Language = 'te' | 'hi' | 'en';
+
 
 interface EmployerDashboardProps {
   user: any;
-  language: Language;
   onNavigateToProfile: () => void;
   onNavigateToJobPost: () => void;
   onNavigateToWorkersList: () => void;
   onNavigateToChat: (contactName: string, contactType: 'worker' | 'employer') => void;
+  onSwitchRole: () => void;
 }
 
 const EmployerDashboard: React.FC<EmployerDashboardProps> = ({ 
   user, 
-  language, 
   onNavigateToProfile, 
   onNavigateToJobPost, 
   onNavigateToWorkersList, 
-  onNavigateToChat 
+  onNavigateToChat, 
+  onSwitchRole
 }) => {
   const [activeTab, setActiveTab] = useState('home');
+  const { lang: language } = useLang();
+  const [showRoleSwitchConfirmation, setShowRoleSwitchConfirmation] = useState(false);
   const userRole = 'employer';
 
   const content = {
@@ -140,15 +144,21 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({
       <div className="bg-white rounded-2xl shadow-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-xl font-bold text-gray-800">
-              {currentContent.greeting}, {user.name}
-            </h2>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{currentContent.greeting}, {user.name}</h2>
             <div className="flex items-center text-gray-600 mt-1">
               <MapPin className="w-4 h-4 mr-1" />
               <span>{user.location}</span>
             </div>
           </div>
-          <Volume2 className="w-6 h-6 text-orange-600" />
+          <div className="flex flex-col items-end space-y-2">
+            <button
+              onClick={() => setShowRoleSwitchConfirmation(true)}
+              className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-full bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-700 dark:text-blue-100 dark:hover:bg-blue-600 transition"
+            >
+              Switch to Worker
+            </button>
+            <Volume2 className="w-6 h-6 text-orange-600" />
+          </div>
         </div>
       </div>
 
@@ -234,21 +244,28 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({
       case 'jobs':
         return renderJobsTab();
       case 'profile':
-        return <Profile user={user} language={language} userRole={userRole} onBack={() => setActiveTab('home')} onSwitchRole={() => {}} />;
+        return <Profile user={user} userRole={userRole} onBack={() => setActiveTab('home')} onSwitchRole={onSwitchRole} />;
       case 'earnings':
-        return <EarningsScreen onBack={() => setActiveTab('home')} language={language} />;
+        return <EarningsScreen onBack={() => setActiveTab('home')} />;
       default:
         return renderHomeTab();
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
-      {/* Main Content */}
-      <div className="px-6 py-6 pb-24">
-        {renderTabContent()}
-      </div>
+  const handleConfirmSwitch = () => {
+    setShowRoleSwitchConfirmation(false);
+    onSwitchRole();
+  };
 
+  const handleCancelSwitch = () => setShowRoleSwitchConfirmation(false);
+
+  return (
+    <>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
+        {/* Main Content */}
+        <div className="px-6 py-6 pb-24">
+          {renderTabContent()}
+        </div>
       {/* Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-3">
         <div className="flex justify-around">
@@ -281,6 +298,17 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({
         </div>
       </div>
     </div>
+
+    {/* Role Switch Confirmation from Home */}
+    <RoleSwitchConfirmation
+      currentRole={userRole}
+      targetRole="worker"
+      language={language}
+      onConfirm={handleConfirmSwitch}
+      onCancel={handleCancelSwitch}
+      isVisible={showRoleSwitchConfirmation}
+    />
+    </>
   );
 };
 

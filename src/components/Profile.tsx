@@ -6,30 +6,28 @@ import HelpSupport from './HelpSupport';
 import LanguageSettings from './LanguageSettings';
 import RoleSwitchConfirmation from './RoleSwitchConfirmation';
 
+import { useLang } from './LanguageContext';
 type Language = 'te' | 'hi' | 'en';
 type UserRole = 'worker' | 'employer';
 
 interface ProfileProps {
   user: any;
-  language: Language;
   userRole: UserRole | null;
   onBack: () => void;
   onSwitchRole: () => void;
   onUserUpdate?: (updatedUser: any) => void;
-  onLanguageChange?: (language: Language) => void;
   onLogout?: () => void;
 }
 
 const Profile: React.FC<ProfileProps> = ({ 
   user, 
-  language, 
   userRole, 
   onBack, 
   onSwitchRole,
   onUserUpdate,
-  onLanguageChange,
   onLogout
 }) => {
+  const { lang, setLang } = useLang();
   const [currentView, setCurrentView] = useState<'main' | 'edit' | 'settings' | 'help' | 'language'>('main');
   const [showRoleSwitchConfirmation, setShowRoleSwitchConfirmation] = useState(false);
   const content = {
@@ -74,7 +72,7 @@ const Profile: React.FC<ProfileProps> = ({
     }
   };
 
-  const currentContent = content[language];
+  const currentContent = content[lang];
 
   const handleMenuAction = (action: string) => {
     switch (action) {
@@ -117,10 +115,8 @@ const Profile: React.FC<ProfileProps> = ({
   };
 
   const handleLanguageUpdate = (newLanguage: Language) => {
-    if (onLanguageChange) {
-      onLanguageChange(newLanguage);
-    }
-    setCurrentView('main');
+    setLang(newLanguage);
+    setTimeout(() => setCurrentView('main'), 50);
   };
 
   const handleRoleSwitchConfirm = () => {
@@ -148,7 +144,7 @@ const Profile: React.FC<ProfileProps> = ({
     return (
       <EditProfile
         user={user}
-        language={language}
+        language={lang}
         userRole={userRole}
         onBack={() => setCurrentView('main')}
         onSave={handleUserUpdate}
@@ -159,9 +155,7 @@ const Profile: React.FC<ProfileProps> = ({
   if (currentView === 'settings') {
     return (
       <SettingsComponent
-        language={language}
         onBack={() => setCurrentView('main')}
-        onLanguageChange={handleLanguageUpdate}
       />
     );
   }
@@ -169,7 +163,7 @@ const Profile: React.FC<ProfileProps> = ({
   if (currentView === 'help') {
     return (
       <HelpSupport
-        language={language}
+        language={lang}
         onBack={() => setCurrentView('main')}
       />
     );
@@ -178,9 +172,7 @@ const Profile: React.FC<ProfileProps> = ({
   if (currentView === 'language') {
     return (
       <LanguageSettings
-        currentLanguage={language}
         onBack={() => setCurrentView('main')}
-        onLanguageChange={handleLanguageUpdate}
       />
     );
   }
@@ -260,9 +252,11 @@ const Profile: React.FC<ProfileProps> = ({
               key={item.action}
               onClick={() => handleMenuAction(item.action)}
               title={item.label}
-              className={`w-full flex items-center space-x-4 p-4 hover:bg-gray-50 transition-colors ${
-                index !== menuItems.length - 1 ? 'border-b border-gray-100' : ''
-              } ${item.danger ? 'text-red-600 hover:bg-red-50' : 'text-gray-800'}`}
+              className={`w-full flex items-center space-x-4 p-4 transition-colors 
+                ${index !== menuItems.length - 1 ? 'border-b border-gray-100 dark:border-gray-700' : ''}
+                ${item.danger 
+                  ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900' 
+                  : 'text-gray-800 hover:bg-gray-50 dark:text-gray-100 dark:hover:bg-gray-700'}`}
             >
               <item.icon className="w-6 h-6" />
               <span className="font-medium">{item.label}</span>
@@ -287,7 +281,7 @@ const Profile: React.FC<ProfileProps> = ({
       <RoleSwitchConfirmation
         currentRole={userRole || 'worker'}
         targetRole={userRole === 'worker' ? 'employer' : 'worker'}
-        language={language}
+        language={lang}
         onConfirm={handleRoleSwitchConfirm}
         onCancel={handleRoleSwitchCancel}
         isVisible={showRoleSwitchConfirmation}

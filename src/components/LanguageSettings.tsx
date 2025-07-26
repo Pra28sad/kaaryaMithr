@@ -1,19 +1,15 @@
 import React from 'react';
 import { ArrowLeft, Check, Globe } from 'lucide-react';
+import { useLang } from './LanguageContext';
 
 type Language = 'te' | 'hi' | 'en';
 
 interface LanguageSettingsProps {
-  currentLanguage: Language;
   onBack: () => void;
-  onLanguageChange: (language: Language) => void;
 }
 
-const LanguageSettings: React.FC<LanguageSettingsProps> = ({ 
-  currentLanguage, 
-  onBack, 
-  onLanguageChange 
-}) => {
+const LanguageSettings: React.FC<LanguageSettingsProps> = ({ onBack }) => {
+  const { lang: currentLanguage, setLang } = useLang();
   const content = {
     en: {
       title: "Language Settings",
@@ -51,12 +47,10 @@ const LanguageSettings: React.FC<LanguageSettingsProps> = ({
   const languages: Language[] = ['en', 'hi', 'te'];
 
   const handleLanguageSelect = (language: Language) => {
-    onLanguageChange(language);
-    // Simulate app restart notification
-    setTimeout(() => {
-      onBack();
-    }, 1000);
+    setLang(language);
+    setTimeout(onBack, 50);
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
