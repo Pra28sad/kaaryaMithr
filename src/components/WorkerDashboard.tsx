@@ -306,7 +306,7 @@ const WorkerDashboard: React.FC<WorkerDashboardProps> = ({
         // - Add search/filter for chats
         // - Integrate with backend for real chat data
       case 'earnings':
-        return <EarningsScreen onBack={() => setActiveTab('home')} />;
+        return <EarningsScreen language={language} onBack={() => setActiveTab('home')} />;
       case 'profile':
         return <Profile user={user} userRole={userRole} onBack={() => setActiveTab('home')} onSwitchRole={onSwitchRole} />;
       default:

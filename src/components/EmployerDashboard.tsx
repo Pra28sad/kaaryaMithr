@@ -246,7 +246,7 @@ const EmployerDashboard: React.FC<EmployerDashboardProps> = ({
       case 'profile':
         return <Profile user={user} userRole={userRole} onBack={() => setActiveTab('home')} onSwitchRole={onSwitchRole} />;
       case 'earnings':
-        return <EarningsScreen onBack={() => setActiveTab('home')} />;
+        return <EarningsScreen language={language} onBack={() => setActiveTab('home')} />;
       default:
         return renderHomeTab();
     }
