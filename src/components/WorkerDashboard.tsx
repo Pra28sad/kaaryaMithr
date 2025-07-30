@@ -325,8 +325,11 @@ const WorkerDashboard: React.FC<WorkerDashboardProps> = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-orange-50">
+      {/* Header - Empty for now */}
+      <div className="h-2 bg-white shadow-sm"></div>
+
       {/* Main Content */}
-      <div className="px-6 py-6 pb-24">
+      <div className="px-6 py-4 pb-24">
         {renderTabContent()}
       </div>
 

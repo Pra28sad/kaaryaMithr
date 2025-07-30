@@ -91,10 +91,17 @@ const PhoneLogin: React.FC<PhoneLoginProps> = ({ onLoginSuccess, language }) => 
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 px-6 py-12">
-      <div className="max-w-md mx-auto">
-        <div className="text-center mb-12">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-orange-50 flex items-center justify-center p-6">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+        <div className="flex justify-center mb-8">
+          <img 
+            src="/images/kaarya-mithr-logo.png" 
+            alt="Kaarya Mithr Logo"
+            className="h-16 w-auto"
+          />
+        </div>
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
             {isOtpSent ? <Shield className="w-8 h-8 text-blue-600" /> : <Phone className="w-8 h-8 text-blue-600" />}
           </div>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">

@@ -18,6 +18,7 @@ type Screen = 'splash' | 'language' | 'role' | 'login' | 'worker-registration' |
 type Language = 'te' | 'hi' | 'en';
 type UserRole = 'worker' | 'employer';
 
+
 function App() {
 
   const [currentScreen, setCurrentScreen] = useState<Screen>('splash');

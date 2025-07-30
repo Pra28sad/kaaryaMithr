@@ -180,18 +180,27 @@ const Profile: React.FC<ProfileProps> = ({
   // Main profile view
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm px-6 py-4">
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={onBack}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <ArrowLeft className="w-6 h-6 text-gray-600" />
-          </button>
-          <h1 className="text-xl font-bold text-gray-800">
-            {currentContent.title}
-          </h1>
+      {/* Header with Logo */}
+      <div className="bg-white shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <ArrowLeft className="w-6 h-6 text-gray-600" />
+            </button>
+            <h1 className="text-xl font-bold text-gray-800">
+              {currentContent.title}
+            </h1>
+          </div>
+          <div className="flex items-center space-x-2">
+            <img 
+              src="/images/kaarya-mithr-logo.png" 
+              alt="Kaarya Mithr Logo"
+              className="w-8 h-8 rounded-lg"
+            />
+          </div>
         </div>
       </div>
 
